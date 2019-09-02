@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='UTF-8'>
+    <title>Quanta面试查询</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" type="text/css" href="./general.css">
+    <style>
+        .title {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .box {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            width: 300px;
+            margin-left: -150px;
+        }
+
+        #search-input {
+            width: 75%;
+            height: 35px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #search-button {
+            width: 150px;
+            height: 30px;
+            margin: 20px auto;
+            color: #ffffff;
+            background-color: #ec6519;
+        }
+
+        #tip-window {
+            position: fixed;
+            width: 90%;
+            height: 250px;
+            border: 1px solid black;
+            left: 50%;
+            top: 45%;
+            margin-left: -45%;
+            margin-top: -150px;
+            background-color: #ffffff;
+            /* word-break: break-all; */
+        }
+
+        #close {
+            position: absolute;
+        }
+
+        #part-selection {
+            width: 77%;
+            height: 35px;
+            display: block;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        #tip {
+            font-size: 12px;
+            width: 90%;
+            text-indent: 24px;
+            margin: 30px auto 0 auto;
+
+        }
+
+        #ok-button {
+            width: 20%;
+            height: 30px;
+            margin: 0 0 0 -10%;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            background-color: #ec6519;
+            color: #ffffff;
+        }
+
+        .logo {
+            display: block;
+            width: 50%;
+            margin: 10px auto;
+        }
+        .radio-box{
+            font-size: 12px;
+            margin: 30px;
+            display: flex;
+            justify-content: center;
+        }
+        .radio-box span{
+            margin: 0 5px;
+            vertical-align: bottom;
+        }
+        .radio-box input{
+            vertical-align: bottom;
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="box">
+        <img class="logo" src="./logo.png"></img>
+        <p class="title"><del>(直男风格)</del>面试查询</p>
+        <select id="part-selection">
+            <option value="运营">运营</option>
+            <option value="设计">设计</option>
+            <option value="前端">前端</option>
+            <option value="后台">后台</option>
+            <option value="安卓">安卓</option>
+        </select>
+        <!-- <div class="radio-box">
+            <span><input type="radio" name="department" value="运营" checked>运营</span>
+            <span><input type="radio" name="department" value="设计">设计</span>
+            <span><input type="radio" name="department" value="前端">前端</span>
+            <span><input type="radio" name="department" value="后台">后台</span>
+            <span><input type="radio" name="department" value="安卓">安卓</span>
+        </div> -->
+        <input id="search-input" placeholder="你的名字" />
+        <button id="search-button">查查查</button>
+    </div>
+    <div id="tip-window" style="display: none">
+        <p id="tip">加载中...</p>
+        <button id="ok-button">好的！</button>
+    </div>
+    <script>
+        console.log($);
+        const partSelection = document.querySelector('#part-selection'),
+            searchInput = document.querySelector('#search-input'),
+            searchButton = document.querySelector('#search-button'),
+            tipWindow = document.querySelector('#tip-window'),
+            tip = document.querySelector('#tip'),
+            okButton = document.querySelector('#ok-button');
+
+        const passTip = "恭喜你在一面中获得Quanta经理的青睐，期待你在接下来的表现噢！在以下链接领取自己方向的小册子(实体书将于明天，即9月3日可领取，请关注公众号)！<span style='color:#ec6519'>\n二面时间初定本周日（9月8号），请持续关注公众号Quanta及咨询群。</span>选择多方向的同学二面届时到相应方向的教室笔试即可" +
+         "\n链接：https://pan.baidu.com/s/1d6re3owPcBBRhtHRwPhUkA  提取码：bkf7",
+            failedTip = "虽然你的表现也很出众，但很遗憾你没有得到Quanta经理们的垂青，希望你不要灰心，继续寻找属于你自己的道路，向着梦想奋力前行。",
+            noFoundTip = "没找到数据，会不会是输错<span style='color:#ec6519'>名字和方向</span>了呢？如果还是没有输错，请发送您的姓名、方向及手机号码至<span style='color:#ec6519'>quantacenter@126.com<span>";
+
+
+        okButton.onclick = function () {
+            tipWindow.style.display = 'none';
+            tip.innerText = "加载中...";
+        }
+
+
+        searchButton.onclick = function () {
+            let department = partSelection.value,
+                name = searchInput.value,
+                data = {
+                    type: "B002",
+                    data: {
+                        name: name,
+                        department: department
+                    }
+                };
+            searchResult(data);
+        }
+
+
+        function searchResult(data) {
+            tipWindow.style.display = 'block';
+            fetchResult(data);
+        }
+
+
+        function fetchResult(dataSended) {
+            $.post(
+                "http://106.52.187.15/tp2/public/index.php/admin/index/index",
+                dataSended,
+                function (data, status) {
+                    console.log(data);
+                    let code = data.code,//200查到数据，400表示没查到数据
+                        result = parseInt(data.data); //1表示通过，0表示不通过
+
+                    const tip = document.querySelector("#tip");
+                    if (code === 200) {
+                        if (result === 1) {
+                            tip.innerHTML = passTip;
+                        } else if (result === 0) {
+                            tip.innerHTML = failedTip;
+                        }
+                    } else if (code === 400) {
+                        tip.innerHTML = noFoundTip;
+                    }
+                }
+            );
+        }
+
+
+    </script>
+</body>
+
+</html>
